@@ -1,0 +1,129 @@
+operations = {}
+
+
+def add (Num1,  Num2):
+    addition = Num1 + Num2
+    return addition
+    
+add(0, 0)   
+
+        
+def subtract (Num1, Num2):
+    difference = Num1 - Num2
+    return difference
+    
+subtract(0, 0)
+    
+
+
+def multiply (Num1, Num2):
+    multiplication = Num1 * Num2
+    return multiplication
+
+multiply(1,1)
+
+        
+def divide (Num1, Num2):
+    division = Num1/Num2
+    return division
+divide(1,1)
+    
+
+  
+
+
+
+
+
+operations[add] = ("+")
+operations[subtract] = ("-")
+operations[multiply] = ("*")
+operations[divide] = ("/")
+
+
+def calculator(Num1, Num2):
+    Num1 = int(input("what is your first digit? /n To  End calculation press 00 \n If not Response: "))
+    while True:
+        if Num1 == 00:
+            break
+            break
+        function = input("what function would you like to perform?: \n Press  + to add, \n Press - to subtract \n Press * to multiply \n Press / to divide \n Type End to stop calculating ")
+        if function == "+":
+            Num2 = int(input("what is the second digit?: "))
+            calculation_function = add(Num1, Num2)
+            answer = calculation_function
+            print(answer)
+            print("")
+            should_continue = input("you wish to continue calculation using your present result, \n True or False?: ")
+            if should_continue == "True" or should_continue == "TRUE" or should_continue == "true":
+                Num1 = answer
+                print("")
+                print("")
+            elif should_continue == "False" or should_continue == "FALSE" or should_continue == "false":
+                print("Thanks for checking in, rerun to calculate for more!")
+                break
+            else:
+                print("wrong input,  rerun code and read instructions")
+                break
+                print("")
+                        
+                    
+        elif function == "-":
+            Num2 = int(input("what is the second digit?: "))
+            calculation_function = subtract(Num1, Num2)
+            answer = calculation_function
+            print(answer)
+            print("")
+            should_continue = input("you wish to continue calculation using your present result, \n True or False?: ")
+            if should_continue == "True" or should_continue == "TRUE" or should_continue == "true":
+                Num1 = answer
+            elif should_continue == "False" or should_continue == "FALSE" or should_continue == "false":
+                print("Thanks for checking in, rerun to calculate for more!")
+                break
+            else:
+                print("wrong input, reruncode and pls read instructions carefully")
+                break
+                print("")
+                
+                                
+        elif function == "*":
+            Num2 = int(input("what is the second digit?: "))
+            calculation_function = multiply(Num1, Num2)
+            answer = calculation_function
+            print(answer)
+            print("")
+            should_continue = input("you wish to continue calculation using your present result, \n True or False?: ")
+            if should_continue == "True" or should_continue == "TRUE" or should_continue == "true":
+                Num1 = answer
+            elif should_continue == "False" or should_continue == "FALSE" or should_continue == "false":
+                print("Thanks for checking in, rerun to calculate for more!")
+                break
+            else:
+                print("wrong input, rerun code  and read instructions")
+                print("")
+                break
+        elif function == "/":
+            Num2 = int(input("what is the second digit?: "))
+            calculation_function = divide(Num1, Num2)
+            answer = calculation_function
+            print(answer)
+            print("")
+            should_continue = input("you wish to continue calculation using your present result, \n True or False?: ")
+            if should_continue == "True" or should_continue == "TRUE" or should_continue == "true":
+                Num1 = answer
+            elif should_continue == "False" or should_continue == "FALSE" or should_continue == "false":
+                print("Thanks for checking in, rerun to calculate for more!")
+                break
+            else:
+                print("wrong input, rerun code and read instructions")
+                print("")
+                break
+        elif function == "end" or function == "End" or function == "END" :
+            print("Thanks for checking in, rerun to calculate for more!")
+            break
+        else:
+            print("wrong input, please rerun code and read instructions carefully")
+            break
+                    
+            
+calculator(1, 1)
