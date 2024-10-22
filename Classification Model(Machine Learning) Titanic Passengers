@@ -1,0 +1,343 @@
+# CLASSIFICATION MACHINE LEARNING FULL CODE
+# I M P O R T   L I B R A R I E S 
+!pip install pandas-profiling
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sweetviz
+from ydata_profiling import ProfileReport
+import warnings
+
+# Data transformation
+from sklearn.preprocessing import LabelEncoder
+# Fixing unbalanced dataset
+from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
+# Feature selection
+from sklearn.feature_selection import SelectKBest, RFE, SelectFromModel, f_classif
+# Splitting the data
+from sklearn.model_selection import train_test_split
+# Models
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier, RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
+from lazypredict.Supervised import LazyClassifier
+from xgboost import XGBClassifier
+# Selecting the best K for KNN
+from sklearn.model_selection import GridSearchCV
+# Cross validation
+from sklearn.model_selection import cross_val_score
+# Model evaluation
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, precision_recall_curve
+
+
+
+# D E A L   W I T H   W A R N I N G S 
+warnings.filterwarnings('ignore')
+
+# G E T   D A T A S E T 
+dataset = pd.read_csv('/content/titanic-passengers (1).csv', delimiter = ';')
+
+# E X P L O R A T O R Y   D A T A   A N A L Y S  I S  
+eda_head = dataset.head(15)
+eda_tail = dataset.tail(5)
+eda_descriptive_statistics = dataset.describe()
+eda_more_descriptive_statistics = dataset.describe(include = 'all')
+eda_check_null = dataset.isnull().sum()
+eda_distinct_count = dataset.nunique()
+eda_correlation_matrix = dataset.corr()
+dataset.info()
+
+        # EDA with Visualization
+dataset.hist(bins=10, figsize=(20, 20))
+sns.heatmap(eda_correlation_matrix, annot=True, cmap='coolwarm')
+
+        # Data Cleaning
+store_columns_to_drop = dataset.loc[:, ['PassengerId', 'Name', 'Ticket', 'Cabin']] 
+dataset = dataset.drop(store_columns_to_drop, axis = 1)
+
+fix_embarked = dataset.groupby('Embarked').count()
+dataset.loc[:, 'Embarked'] = dataset.loc[:, 'Embarked'].fillna('S')
+dataset.info()
+
+fix_age = dataset.groupby('Age').count()
+dataset.loc[:, 'Age'] = dataset.loc[:, 'Age'].fillna(dataset.loc[:, 'Age'].median())
+dataset.info()
+
+        # Personal check on the ration of survival from the titanic
+survived = dataset.groupby(['Survived', 'Sex']).count()
+
+        # Data Transformation
+        # Fix Survived
+le = LabelEncoder()
+dataset.loc[:, 'Survived'] = le.fit_transform(dataset.loc[:, 'Survived'])
+
+        # Fix Sex
+le_1 = LabelEncoder()
+dataset.loc[:, 'Sex'] = le_1.fit_transform(dataset.loc[:, 'Sex'])
+
+        # Fix Embarked
+dummies_embarked = pd.get_dummies(dataset.loc[:, 'Embarked'], dtype = np.int32)
+dataset = dataset.drop(dataset[['Embarked']], axis = 1)
+dataset = dataset.join(dummies_embarked)
+
+        # SweetViz
+# report = sweetviz.analyze(dataset)
+# report.show_html()
+
+# SELECTING X AND Y
+x = dataset.drop(['Survived'], axis = 1)
+y = dataset['Survived']
+
+# C H E C K I N G   B A L A N C E D / U N B A L A N C E D   D A T A S E T
+y_class_count = y.value_counts()
+store = 0
+for values in y_class_count:
+    if values > store and store == 0:
+        store = values
+    elif values < store:
+        check = round((values/store), 2)
+        if check < 0.6:
+            print('There is class imbalance in the Dependent Variable')
+        else:
+            print('The classes are balanced in the Dependent Variable')
+    elif values > store:
+        check = round((store/values), 2)
+        if check < 0.6:
+            print('There is class imbalance in the Dependent Variable')
+        else:
+            print('The classes are balanced in the Dependent Variable')
+        store = values
+        
+        # IF DATASET IS UNBALANCED, RUN THIS CODE
+unbalanced_model_fix = SMOTE()
+x, y = unbalanced_model_fix.fit_resample(x, y)
+y_class_count_fix = y.value_counts()
+
+# F E A T U R E   S E L E C T I O N
+feature_selected_model = SelectKBest(f_classif, k = 4)
+feature_selected = feature_selected_model.fit_transform(x, y)
+
+    # Evaluation
+feature_scores = feature_selected_model.scores_
+feature_names_selected = feature_selected_model.get_feature_names_out()
+feature_selection_allnames = feature_selected_model.feature_names_in_
+feature_table_score = pd.Series(feature_scores, index = feature_selection_allnames)
+
+    # New X_features
+new_x = pd.DataFrame(feature_selected, columns = feature_names_selected, dtype = np.int32)
+
+# S P L I T T I N G   T H E   D A T A S E T   I N T O   T R A I N I N G   A N D   T E S T   D A T A S E T 
+x_train, x_test, y_train, y_test = train_test_split(new_x, y, test_size = 0.20, random_state = 0)
+
+# M O D E L   T R A I N I N G 
+classifier = [
+    {'LogisticRegression': LogisticRegression(random_state = 0)},
+    {'GaussianNB': GaussianNB()},
+    {'BernoulliNB': BernoulliNB()},
+    {'SVC': SVC(random_state = 0)},
+    {'KNN': KNeighborsClassifier(n_neighbors= 5, weights = 'distance')},
+    {'DecisionTreeClassifier': DecisionTreeClassifier(random_state= 0)},
+    {'RandomForestClassifier': RandomForestClassifier(random_state= 0, n_estimators = 100)},
+    {'BaggingClassifier': BaggingClassifier(estimator = LogisticRegression(random_state = 0), n_estimators= 10, random_state = 0)},
+    {'GradientBoostingClassifier': GradientBoostingClassifier(random_state = 0)},
+    {'AdaBoostClassifier': AdaBoostClassifier(random_state= 0, n_estimators = 50)},
+    {'ExtremeGradientBoosting( XGBoost )': XGBClassifier()}
+    ]
+
+# Implementing LazyClassifier
+lazyclassifier = LazyClassifier(random_state = 0)
+lazymodel = lazyclassifier.fit(x_train, x_test, y_train, y_test)
+
+    # Finding the best K
+def finding_the_best_k_KNN_method1(cv_num):
+    # Define the parameter grid
+    param_grid = {'n_neighbors': range(1, 21)}
+    
+    # Perform grid search using cross-validation
+    grid_search = GridSearchCV(KNeighborsClassifier(metric = 'euclidean'), param_grid, cv=cv_num)
+    grid_search.fit(x_train, y_train)
+    
+    # Print the best parameter and best score
+    print("Best k value: ", grid_search.best_params_['n_neighbors'])
+    print("Best score: ", grid_search.best_score_)
+ 
+def finding_the_best_k_KNN_method2():
+    k = [num for num in range(1, 31)]
+    scores_knn = []
+    scores_store = {}
+    for num in k:
+        classifier = KNeighborsClassifier(n_neighbors = num, weights = 'distance')
+        model = classifier.fit(x_train, y_train)
+        
+        # Model Evaluation
+        scores_knn.append(model.score(x_train, y_train))
+        scores_store[num] = (model.score(x_train, y_train))
+    
+    # Plotting a graph
+    plt.figure(figsize = (15, 10))
+    plt.plot(k, scores_knn)
+    plt.title('KNN graph for values of K and their scores')
+    plt.xlabel('Ranges of K values')
+    plt.ylabel('Scores')
+    plt.show()
+    
+    # Getting the best score
+    b = (0, 0)
+    for key, value in scores_store.items():    
+        if value > b[1]:
+            b = (key, value)
+    print(f'The best k-value is {b[0]} with a score of {b[1]}.')
+    
+model_store = []
+classifier_store = {}
+ypred_store = []
+ypred1_store = []
+trainmse_store = []
+trainrsquared_store = []
+testmse_store = []
+testrsquared_store = []
+score_store = []
+scoremean_store = []
+scorestd_store = []
+
+def complete_model_prediction_evaluation_validation():
+    a = 1
+    b = 0
+    for func in classifier:
+        model = list(classifier[b].values())[0].fit(x_train, y_train)
+        model_store.append(list(classifier[b].keys())[0])
+        
+        # M O D E L   P R E D I C T I O N
+        y_pred = model.predict(x_train)
+        y_pred1 = model.predict(x_test)
+        ypred_store.append(y_pred)
+        ypred1_store.append(y_pred1)
+        
+        # M O D E L   E V A L U A T I O N
+        analysis_training = confusion_matrix(y_train, y_pred)
+        class_report_training = classification_report(y_train, y_pred)
+        accuracy_training = accuracy_score(y_train, y_pred)
+        precision_training = precision_score(y_train, y_pred)
+        recall_training = recall_score(y_train, y_pred)
+        f1_score_training = f1_score(y_train, y_pred)
+        roc_auc_training = roc_auc_score(y_train, y_pred)
+        
+        
+        analysis_test = confusion_matrix(y_test, y_pred1)
+        class_report_test = classification_report(y_test, y_pred1)
+        accuracy_test = accuracy_score(y_test, y_pred1)
+        precision_test = precision_score(y_test, y_pred1)
+        recall_test = recall_score(y_test, y_pred1)
+        f1_score_test = f1_score(y_test, y_pred1)
+        roc_auc_test= roc_auc_score(y_test, y_pred1)
+        
+        # PLOTTING PRECISION TO RECALL TRADE-OFF
+        precision_1, recall_1, threshold = precision_recall_curve(y_test, probas_pred = y_pred1)
+        plt.figure()
+        plt.plot(precision_1, recall_1)
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title(f'Precision-Recall Curve for {list(classifier[b].keys())[0]}')
+        plt.show()
+        
+        
+        ## Cross Validation
+        score = cross_val_score(list(classifier[b].values())[0], x_train, y_train, cv = 5)    
+        score_mean = round((score.mean() * 100), 2)
+        score_std_dev = round((score.std() * 100), 2)
+        score_store.append(score)
+        scoremean_store.append(score_mean)
+        scorestd_store.append(score_std_dev)
+        
+        classifier_store[a] = {
+            'model': model,
+            'y_pred(TRAINING_DATA) vs y_true': y_pred,
+            'y_pred(TEST_DATA) vs y_true': y_pred1,
+            'model_evaluation': {
+                'TRAINING_DATA': {
+                    'confusion_matrix': analysis_training,
+                    'classification_report': class_report_training,
+                    'accuracy': accuracy_training,
+                    'precision': precision_training,
+                    'recall': recall_training,
+                    'f1_score': f1_score_training,
+                    'roc_auc': roc_auc_training
+                    },
+                'TEST_DATA': {
+                    'confusion_matrix': analysis_test,
+                    'classification_report': class_report_test,
+                    'accuracy': accuracy_test,
+                    'precision': precision_test,
+                    'recall': recall_test,
+                    'f1_score': f1_score_test,
+                    'roc_auc': roc_auc_test
+                    }
+                },
+            'cross_validation': {
+                'cross_val_score_across_folds': score,
+                'mean': score_mean,
+                'standard_deviation': score_std_dev
+                }
+            }
+        
+        print('\n\nEVALUATION METRICS FOR MODEL:')
+        print(f'Model name: {list(classifier[b].keys())[0]}\nTraining accuracy: {accuracy_training}\nTest accuracy: {accuracy_test}\n\nTraining_f1_score: {f1_score_training}\nTest_f1_score: {f1_score_test}\n\nTraining_roc_auc_score: {roc_auc_training}\nTest_roc_auc_score: {roc_auc_test}\n\nValidation_Score_mean: {score_mean}\nValidation_Score_std: {score_std_dev}\n\n')
+    
+        b = b + 1
+        a = a + 1
+        
+
+STORE = complete_model_prediction_evaluation_validation()
+
+# M O D E L   T E S T 
+print('Welcome to survival rate prediction for the Titanic')
+print('Truly the incident with the Titanic in April 15, 1912 was a truly remarkable one that saw the death of over 1517 passangers that night.\nIn light of advancement in Artificial Intelligence and Machine Learning, we have trained a model that can predict if a passanger survived or died given the following parameters: \n')
+print('(1) Pclass: Ticket class representing the socio-economic status of the passenger (1 = 1st class, 2 = 2nd class, 3 = 3rd class).\n(2) Sex: Gender of the passenger (Male or Female).\n(3) Fare: Fare paid for the ticket.\n(4) Embarked: Port of embarkation (C = Cherbourg, S = Southampton).')
+print('To proceed to our predictor ==>')
+question = int(input('Press 1: Predict\nPress 2: Exit\nRESPONSE: '))
+if question == 1:
+    print('\nFill in the following information ==> ')
+    a = int(input('Passenger Class (1 = 1st class, 2 = 2nd class, 3 = 3rd class): '))
+    b = int(input('Gender (0 = Female, 1 = Male): ')) 
+    c = float(input('Fare (Fare paid for the ticket): '))
+    d = int(input('Embarked from Southampton (0 = No, 1 = Yes): '))
+    while True:
+        model_to_use = int(input('\nWhich model will you like to use for this prediction?\nPRESS 1: Logistic Regression\nPRESS 2: GaussianNB\nPRESS 3: BernoulliNB\nPRESS 4: Support Vector Classifier\nPRESS 5: KNearest Neighbours\nPRESS 6: DecisionTree Classifier\nPRESS 7: RandomForest Classifier\nPRESS 8: Bagging Classifier\nPRESS 9: GradientBossting Classifier\nPRESS 10: AdaBoost Classifier\nPRESS 11: XGBoost\n\nRESPONSE: '))
+        survival = int(classifier_store[model_to_use]['model'].predict([[a, b, c, d]]))
+        if a == 1:
+            a = '1st class'
+        elif a == 2:
+            a = '2nd class'
+        elif a == 3:
+            a = '3rd class'
+            
+        if b == 0:
+            b = 'female'
+        elif b == 1:
+            b = 'male'
+            
+        if d == 0:
+            d = "didn't embark at Southampton"
+        elif d == 1:
+            d = "embarked at Southampton"
+            
+        if survival == 0:
+            survival = "didn't survive"
+        elif survival == 1:
+            survival = "survived"
+            
+        print(f'\nIf the {b} individual who boarded the Titanic was in {a}, paid {c} as fare to get the ticket, and {d}. Expect that the individual {survival} the tragic night of the Titanic')
+        print(f'\nMODEL: {classifier_store[model_to_use]["model"]}')
+        print(f'VALIDATION MEAN: {classifier_store[model_to_use]["cross_validation"]["mean"]}%')
+        print(f'VALIDATION STD: {classifier_store[model_to_use]["cross_validation"]["standard_deviation"]}%')
+        break
+    
+elif question == 2:
+    pass
+else:
+    print('Invalid Response')
