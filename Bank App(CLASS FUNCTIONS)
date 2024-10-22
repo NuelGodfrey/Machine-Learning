@@ -1,0 +1,83 @@
+lass Account:
+        bank_name = 'Nuel Microfinance Bank'
+        def __init__(self, name):
+            self.account_number = 10001
+            self.account_balance = 0
+            self.holder = name
+            
+        def deposit(self, amount):
+            self.amount = amount
+            self.account_balance = self.account_balance + self.amount
+            print(self.account_balance)
+            print('success')
+            print(f'Mr {self.holder}, Your available balance is {self.account_balance}')
+            
+        def withdrawal(self, amount):
+            self.amount = amount
+            if self.amount > self.account_balance or (self.account_balance - self.amount) <= 500:
+                print("insufficient funds")
+                print(f'Sorry Mr {self.holder}, Your available balance is only {self.account_balance}')
+            else:
+                self.amount = amount
+                self.account_balance = self.account_balance - self.amount
+                print("Transaction Succesful")
+                print(f'Mr {self.holder}, Your available balance is {self.account_balance}')
+                
+        def check_balance(self):
+            print(f' Mr {self.holder}, your current available balance is {self.account_balance}')
+            return (self.account_balance)
+
+            
+acc = Account(input('Name: '))       
+while True:
+        options = int(input("what would you like to Do?: Press 1 to Deposit money \n Press 2 to withdraw \n Press 3 to Chechk_balance"))
+        if options == 1:
+            amount = acc.deposit(int(input('Amount: ')))
+            flag = True
+            while True:
+                response = int(input('PRESS 1: Main Menu\nPRESS 2: Exit\nRESPONSE: '))
+                if response == 1:
+                    break
+                elif response == 2:
+                    flag = False
+                    break
+                else:
+                    print('Invalid Response')
+            if flag == False:
+                break
+            
+            
+        elif options == 2:
+            amount = acc.withdrawal(int(input('Amount: ')))
+            flag = True
+            while True:
+                response = int(input('PRESS 1: Main Menu\nPRESS 2: Exit\nRESPONSE: '))
+                if response == 1:
+                    break
+                elif response == 2:
+                    flag = False
+                    break
+                else:
+                    print('Invalid Response')
+            if flag == False:
+                break
+
+            
+        elif options == 3:
+            check = acc.check_balance()
+            flag = True
+            while True:
+                response = int(input('PRESS 1: Main Menu\nPRESS 2: Exit\nRESPONSE: '))
+                if response == 1:
+                    break
+                elif response == 2:
+                    flag = False
+                    break
+                else:
+                    print('Invalid Response')
+            if flag == False:
+                break
+        elif options == 4:
+            break
+
+        
