@@ -1,0 +1,46 @@
+import warnings 
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+# fix warnings
+
+warnings.filterwarnings('ignore')
+
+from google.colab import files
+uploaded = files.upload()
+
+import io
+dataset = io.BytesIO(uploaded['titanic-passengers.csv'])
+surv_head = dataset.head(15)
+descriptive_statistics = dataset.describe()
+more_descriptive_statistics = dataset.describe(include = 'all')
+surv_check_null = dataset.isnull()
+
+surv_distinct_count = dataset.nunique()
+
+surv_correlation_matrix = dataset.corr()
+dataset.info()
+
+# Data Cleaning 
+store_columns_to_drop =  dataset.loc[:, ['PassengerId', 'Ticket', 'Name', 'Cabin']]
+dataset = dataset.drop(store_columns_to_drop, axis = 1)
+
+fix_embarked = dataset.groupby('Embarked').count()
+dataset.loc[:, 'Embarked'] = dataset.loc[:, 'Embarked']. fillna('S')
+dataset.info
+
+fix_age = dataset.groupby('Age').count
+survived = dataset.groupby(['Survived', 'Sex']).count()
+
+# Data Transformation using GET DUMMIES
+survived_dummies = pd.get_dummies(dataset.loc[:, 'Survived'])
+sex_dummies = pd.get_dummies(dataset.loc[:, 'Sex'])
+
+# Data Transformation using Label Encoder
+le = LabelEncoder()
+dataset.loc[:, 'Survived'] = le.fit_transform(dataset.loc[:, 'Survived'])
+
+
+
+
