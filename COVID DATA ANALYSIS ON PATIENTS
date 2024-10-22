@@ -1,0 +1,42 @@
+!pip install pandas-profiling
+import warnings
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+import matplotlib.pyplot as plt
+import pandas_profiling as pp
+import seaborn as sns
+from ydata_profiling import ProfileReport
+
+dataset = pd.read_csv('/content/covid_19_data.csv')
+warnings.filterwarnings('ignore')
+
+covid_head = dataset.head(15)
+covid_tail = dataset.tail(5)
+
+covid_desc_stats = dataset.describe()
+covid_more_desc_stats = dataset.describe(include = 'all')
+covid_corr_matrix = dataset.corr()
+dataset = dataset.dropna(how = 'any', axis = 0)
+check_null = dataset.isnull().sum()
+dataset.info()
+
+covid_distinct_count = dataset.nunique
+
+dataset.hist(bins = 10, figsize = (15, 15))
+
+profile = pp.ProfileReport(dataset, title='Pandas Profiling Report')
+
+profile.to_notebook_iframe()
+
+sns.heatmap(covid_corr_matrix, cmap = 'coolwarm', annot = True)
+
+
+profile = ProfileReport(dataset, title = 'GlobalCovidPademicReports')
+
+
+profile.to_widgets()
+
+
+profile.to_file(output_file= 'LARESBLOODTHIRSTERS_GlobalPandemicreports.html')
