@@ -1,0 +1,41 @@
+def calculate(self, num1, op, num2):
+        if op not in self.operations:
+            print("Invalid operation symbol")
+            raise ValueError("Invalid operation symbol")
+        
+        if not isinstance(num1, (int, float)) or not isinstance(num2, (int, float)):
+            print("Invalid input value")
+            raise ValueError("Invalid input value")
+        
+        return self.operations[op](num1, num2)
+
+# add advanced math operations to calculator
+calc = Calculator()
+calc.add_operation("^", lambda x, y: x ** y)
+calc.add_operation("sqrt", lambda x: math.sqrt(x))
+calc.add_operation("log", lambda x, y: math.log(x, y))
+
+# main program loop
+while True:
+    num1 = input("Enter first number: ")
+    op = input("Enter operation symbol: ")
+    num2 = input("Enter second number: ")
+    
+    try:
+        num1 = float(num1)
+        num2 = float(num2)
+    except ValueError:
+        print("Invalid input value")
+        continue
+    
+    try:
+        result = calc.calculate(num1, op, num2)
+        print("Result:", result)
+    except ValueError:
+        continue
+    
+    choice = input("Perform another calculation? (y/n): ")
+    if choice.lower() != "y":
+        break
+
+
