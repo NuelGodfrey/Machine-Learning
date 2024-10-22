@@ -1,0 +1,21 @@
+!pip install pandas-Profiling
+import warnings
+import pandas as pd
+import pandas_profiling as pp
+# from pandas_profiling  import ProfileReport
+
+from google.colab import files
+uploaded = files.upload()
+
+import io
+adult_income = io.BytesIO(uploaded['adult.csv'])
+
+
+warnings.filterwarnings('ignore')
+head = adult_income.head(15)
+descriptive_statistics = adult_income.describe()
+profile = pp.ProfileReport(adult_income, title='Pandas Profiling Report')
+check_null = adult_income.isnull()
+profile.to_notebook_iframe()
+adult_correlation_matrix = adult_income.corr()
+adult_income.info()
