@@ -1,0 +1,41 @@
+warnings.filterwarnings('ignore')
+dataset = pd.read_csv('/content/Video games (1).csv')
+head = dataset.head(15)
+tail = dataset.tail(5)
+descriptive_stats = dataset.describe()
+more_descriptive_stats = dataset.describe(include = 'all')
+corr_matrix = dataset.corr
+distinct_count = dataset.nunique
+Publisher = dataset[['Publisher']]
+mode_publisher = Publisher.mode()
+dataset[['Publisher']] = dataset[['Publisher']].fillna('Electronic Arts')
+Year = dataset[['Year']]
+mode_year = Year.mode()
+dataset[['Year']] = dataset[['Year']].fillna(2009)
+dataset.info()
+check_null = dataset.isnull().sum()
+distinct_count = dataset.nunique()
+dataset.hist(bins = 10, figsize = (15, 15))
+
+
+
+profile = pp.ProfileReport(dataset, title='Video game analysis')
+
+profile.to_notebook_iframe()
+
+#sns.heatmap(corr_matrix, cmap = 'coolwarm', annot = True)
+
+
+#profile = ProfileReport(dataset, title = 'Videogameanalysis', shape =())
+
+
+#profile.to_widgets()
+
+
+
+
+fig = px.bar(dataset, x = 'Publisher', y = 'Global_Sales', color = 'Global_Sales', height = 400)
+fig.update_layout(title_text="Publishers Global Sales", xaxis_title = "Publishers", yaxis_title = "Global_Sales")
+fig.update_traces(marker=dict(color='red', opacity = 0.7, line = dict(color= 'red', width=1.5)))
+fig.update_layout(coloraxis_colorbar=dict(title="Publishers Global Sales"))
+fig.show()
