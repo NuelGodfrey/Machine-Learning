@@ -1,4 +1,4 @@
-lass Account:
+class Account:
         bank_name = 'Nuel Microfinance Bank'
         def __init__(self, name):
             self.account_number = 10001
